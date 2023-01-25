@@ -22,7 +22,7 @@ sudo apt-get -y install ninja-build
 
 ## Update submodules
 ```bash
-git submodule update --init --recuesive
+git submodule update --init --recursive
 ```
 
 ## Compile Primate ArchGen
