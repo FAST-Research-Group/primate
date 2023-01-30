@@ -19,6 +19,8 @@ Throughput-Oriented Accelerator Generator
 sudo apt-get update
 sudo apt-get -y install ninja-build
 ```
+NOTE: For some Linux distros, including CentOS, openSUSE, RHEL, Arch, macOS X, and Fedora, the default package manager is **yum**, not **apt-get**. To view your distro, run **cat /etc/*-release**
+
 
 ## Update submodules
 ```bash
@@ -33,6 +35,11 @@ cd build
 cmake -G Ninja -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_PROJECTS=clang -DLLVM_PARALLEL_LINK_JOBS=1 -DLLVM_LINK_LLVM_DYLIB=true ../llvm/
 ninja
 ```
+Note: If you run into an error that reads
+```CMake Error at CMakeLists.txt:3 (cmake_minimum_required):
+  CMake 3.13.4 or higher is required.  You are running version 2.8.12.2```
+run
+```cmake -G Ninja -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_PROJECTS=clang -DLLVM_PARALLEL_LINK_JOBS=1 -DLLVM_LINK_LLVM_DYLIB=true ../llvm/```
 
 ## Primate Application
 ### Description
