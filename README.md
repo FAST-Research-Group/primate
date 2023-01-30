@@ -40,17 +40,14 @@ NOTE: If you run into an error that reads
   CMake 3.13.4 or higher is required.  You are running version 2.8.12.2
 ```
 run
-```cmake -G Ninja -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_PROJECTS=clang -DLLVM_PARALLEL_LINK_JOBS=1 -DLLVM_LINK_LLVM_DYLIB=true ../llvm/
-```
+```cmake -G Ninja -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_PROJECTS=clang -DLLVM_PARALLEL_LINK_JOBS=1 -DLLVM_LINK_LLVM_DYLIB=true ../llvm/```
 
 NOTE:
 If you are getting a GCC version error that reads
-```Host GCC version must be at least 5.1, your version is 4.8.5.
-```
+```Host GCC version must be at least 5.1, your version is 4.8.5.```
 
 simply remove the CMakeCache.txt file in the build directory:
-```rm CMakeCache.txt
-```
+```rm CMakeCache.txt```
 
 ## Primate Application
 ### Description
