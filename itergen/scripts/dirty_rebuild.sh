@@ -8,10 +8,10 @@ PRIMATE_DIR=$(pwd)
 LLVM_DIR=$PRIMATE_DIR/primate-arch-gen
 UARCH_DIR=$PRIMATE_DIR/primate-uarch
 CHISEL_SRC_DIR=$UARCH_DIR/chisel/Gorilla++/src
-#cd $UARCH_DIR/compiler/engineCompiler/multiThread/
-#make clean && make
-#cd $UARCH_DIR/apps/common/build/
-#make clean && make
+cd $UARCH_DIR/compiler/engineCompiler/multiThread/
+make clean && make
+cd $UARCH_DIR/apps/common/build/
+make clean && make
 cd $CUR_DIR/sw
 #$LLVM_DIR/build/bin/clang -emit-llvm -S -O3 "${TARGET}.cpp"
 #$LLVM_DIR/build/bin/opt -enable-new-pm=0 -load $LLVM_DIR/build/lib/LLVMPrimate.so -primate < "${TARGET}.ll" > /dev/null

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import sys
 import argparse
@@ -5,7 +6,7 @@ import logging
 import glob
 import random
 
-DEBUG_SKIP_SCRIPTS = True
+DEBUG_SKIP_SCRIPTS = False
 
 SCRIPT_DIR 		= os.path.dirname(os.path.realpath(__file__))	#The real, on disk location of the file of the script
 SCRIPT_RUN_DIR	= os.getcwd()									#Where the working directory of the script is
@@ -20,14 +21,14 @@ EMULATOR_PATH	= "primate-uarch/chisel/Gorilla++/emulator"
 OUT_VCD 	 	= "primate-uarch/chisel/Gorilla++/test_run_dir/"
 
 tuneable 		= ["NUM_THREADS","NUM_ALUS","NUM_BFUS"]
-#NUM_FUS is just NUM_ALUS + NUM_BFUS
-default_settings= {"NUM_THREADS":16, "NUM_ALUS":2, "NUM_BFUS":3, "NUM_FUS":5} #TODO read from file instead of given
-next_settings	= {"NUM_THREADS":16, "NUM_ALUS":2, "NUM_BFUS":3, "NUM_FUS":5}
+#NUM_FUS is just NUM_ALUS + NUM_BFUS, not needed for primate.cfg but is needed for assembler header file
+default_settings= {"NUM_THREADS":16, "NUM_ALUS":2, "NUM_BFUS":3, "NUM_FUS":5, "FU_PERF_COUNTERS":1, "PER_FU_PERF_COUNTERS":1} 
+next_settings	= {"NUM_THREADS":16, "NUM_ALUS":2, "NUM_BFUS":3, "NUM_FUS":5, "FU_PERF_COUNTERS":1, "PER_FU_PERF_COUNTERS":1}
 test_settings 	= []
 test_results 	= []
 
 #Parses arguments at script initialization, produces an args object
-def parse_args() -> argparse.Namespace:
+def parse_args():
 	parser = argparse.ArgumentParser( 
 					description = 'Tries to tune paramaters of script to increase utilization',
                     epilog = 'Sorry if it does not work ;-;')
@@ -73,8 +74,21 @@ def init_sim():
 	if (DEBUG_SKIP_SCRIPTS):
 		return
 
+	#Check GCC version
+	Version = os.popen("gcc --version").read().split(" ")[2]
+	if ( int(Version.split(".")[0]) < 9):
+		logging.critical(f"GCC is out of date! Found {Version.split('.')[0]} expected 9")
+		logging.critical(f"Run 'scl enable devtoolset-9 bash' or update GCC")
+		sys.exit(-1)
+
+	#Copy new src into primate
+	build_cmd = f"cp {os.path.join(SCRIPT_DIR, 'src/primate.template')} {os.path.join(SCRIPT_RUN_DIR, 'primate-uarch/templates/primate.template')}"
+	os.system(build_cmd)
+	build_cmd = f"cp {os.path.join(SCRIPT_DIR, 'src/scm.py')} {os.path.join(SCRIPT_RUN_DIR, 'primate-uarch/apps/scripts/scm.py')}"
+	os.system(build_cmd)
+
 	#Execute first build in pktreassembly directory
-	build_cmd = f"cd {os.path.join(SCRIPT_RUN_DIR, APP_PATH)} && {os.path.join(SCRIPT_DIR, 'scripts/dirty_build.sh')}"
+	build_cmd = f"cd {os.path.join(SCRIPT_RUN_DIR, APP_PATH)} && chmod 777 {os.path.join(SCRIPT_DIR, 'scripts/dirty_rebuild.sh')} && {os.path.join(SCRIPT_DIR, 'scripts/dirty_rebuild.sh')}"
 	os.system(build_cmd)
 
 def perform_iteration(cur_cyc: int):
@@ -83,12 +97,14 @@ def perform_iteration(cur_cyc: int):
 	if (DEBUG_SKIP_SCRIPTS):
 		return
 
-	build_cmd = f"cd {os.path.join(SCRIPT_RUN_DIR, APP_PATH)} && {os.path.join(SCRIPT_DIR, 'scripts/dirty_rebuild.sh')}"
+	build_cmd = f"cd {os.path.join(SCRIPT_RUN_DIR, APP_PATH)} && chmod 777 {os.path.join(SCRIPT_DIR, 'scripts/dirty_rebuild.sh')} && {os.path.join(SCRIPT_DIR, 'scripts/dirty_rebuild.sh')}"
+	os.system(build_cmd)
+
+	build_cmd = f"cd {os.path.join(SCRIPT_RUN_DIR, EMULATOR_PATH)} && make clean"
 	os.system(build_cmd)
 
 	build_cmd = f"cd {os.path.join(SCRIPT_RUN_DIR, EMULATOR_PATH)} && make -B verilator"
 	os.system(build_cmd)
-	pass
 
 def modify_settings(cur_cycle: int):
 
@@ -98,17 +114,27 @@ def modify_settings(cur_cycle: int):
 	#Update num FUS as needed
 	next_settings["NUM_FUS"] = next_settings["NUM_ALUS"] + next_settings["NUM_BFUS"]
 
+	modified_settings = [];
+
 	#Perform needed modifications to [primate.cfg, primate_assembler.h] 
 	with open( os.path.join(base_path, "primate.cfg"), "r") as fs:
 		with open( os.path.join(base_path, "primate1.cfg"), "w" ) as fd:
 			for o_line in fs:
 				line = o_line.split("=")
 				if( line[0] in next_settings):
+					modified_settings.append(line[0])
 					nl = f"{line[0]}={next_settings[line[0]]}\n"
 					logging.debug(f"modifed line in primate.cfg { o_line.strip() } to {nl}")
 					fd.write( nl )
 				else:
 					fd.write( o_line )
+
+			for setting_key in list(next_settings.keys()):
+				if not ( setting_key in modified_settings):
+					logging.debug(f"setting {setting_key} was not found, appending value")
+					nl = f"{setting_key}={next_settings[setting_key]}\n"
+					fd.write( nl )
+					logging.debug(f"wrote {nl} to cfg file")
 
 	os.system(f"mv {os.path.join(base_path, 'primate1.cfg')} {os.path.join(base_path, 'primate.cfg')}")
 
@@ -229,7 +255,17 @@ def get_score_from_vcd( args: argparse.Namespace, filename: str):
 def get_signals_from_vcd( filename: str, signalarray: list) -> dict:
 	signal_dict = {}
 	for signal_name in signalarray:
-		signal_dict[signal_name] = get_signal_from_vcd(filename, signal_name)[1]
+		n_signal = get_signal_from_vcd(filename, signal_name)
+
+		if( n_signal is None ):
+			logging.critical(f"Could not find signal {signal_name} in output file {filename}!");
+			exit(-1)
+		elif(n_signal[1] is None):
+			logging.critical(f"Found {signal_name} as {n_signal[0]} in output file {filename},");
+			logging.critical(f"however, {signal_name} was not parseable!");
+			exit(-1)
+		else:
+			signal_dict[signal_name] = n_signal[1]
 	return signal_dict
 	
 

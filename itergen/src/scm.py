@@ -32,6 +32,9 @@ with open("primate.template") as f_old, open("primate.scala", "w") as f_new:
 			i = 0
 			for bfu_name in bfu_dict:
 				for port_name in bfu_dict[bfu_name]:
+					f_new.write("  if(FU_PERF_COUNTERS){\n")
+					f_new.write("    perfC.io.bfuActive(" + str(i) + ") := (fuFifos(" + str(i) + ").io.deq.valid) || (!" + bfu_name + "Port." + port_name + ".in_ready) \n")
+					f_new.write("  }\n")
 					f_new.write("  when (fuFifos(" + str(i) + ").io.deq.valid && " + bfu_name + "Port." + port_name + ".in_ready) {\n")
 					f_new.write("    val deq = fuFifos(" + str(i) + ").io.deq\n")
 					f_new.write("    " + bfu_name + "Port." + port_name + ".in_valid := true.B\n")
