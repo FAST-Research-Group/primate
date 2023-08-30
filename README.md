@@ -9,7 +9,7 @@ Throughput-Oriented Accelerator Generator
 - ninja
 
 ### Install Chisel3
-[Chisel3 setup guide](https://github.com/chipsalliance/chisel3/blob/master/SETUP.md)
+[Chisel3 setup guide](https://github.com/chipsalliance/chisel/blob/3.4-release/SETUP.md)
 
 ### Install Cmake
 [Get Cmake](https://cmake.org/download/)
