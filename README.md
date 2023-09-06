@@ -90,3 +90,5 @@ make verilog
 ```
 `Top.v` will be generated at `<project home>/primate-uarch/chisel/Gorilla++/Top.v`
 
+### Error Resolution
+A list of previously encountered errors exist at https://docs.google.com/document/d/1rzh7maXhUuWKWdk794fxJSPc8xqUHz6EzxZO6W1V9TQ/edit?usp=sharing
