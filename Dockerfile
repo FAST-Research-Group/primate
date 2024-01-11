@@ -41,16 +41,18 @@ WORKDIR /primate
 #  gnupg2 -> Chisel -> Primate
 #  Misc. -> sbt -> Chisel -> Primate
 #  Misc. -> Chisel -> Primate
-#  Misc. -> Verilator -> Chisel -> Primate
+#  Misc. -> Verilator -> Chisel -> Primate     #Consider wget http://archive.ubuntu.com/ubuntu/pool/main/b/bison/bison_3.5.1+dfsg-1_amd64.deb for bison instead of from apt in future (Updates)
 #  Misc. -> cmake -> Primate
+#  Misc. -> Script
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt-get update \
- && apt-get -y install default-jdk \
+ && apt-get -y install openjdk-11-jdk \
  && apt-get -y install gnupg1 \ 
  && apt-get -y install apt-transport-https curl gnupg \
- && apt-get -y install git make clang curl g++ flex bison \
+ && apt-get -y install git make clang curl g++ flex bison \ 
  && apt-get -y install git make autoconf g++ flex bison \
- && apt-get -y install build-essential libssl-dev
+ && apt-get -y install build-essential libssl-dev \
+ && apt-get -y install unzip
  
 #sbt -> Chisel -> Primate
 RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list \
@@ -58,15 +60,27 @@ RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/ap
  && curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | gpg --no-tty --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/scalasbt-release.gpg --import \
  && chmod 644 /etc/apt/trusted.gpg.d/scalasbt-release.gpg \
  && apt-get update \
- && apt-get -y install sbt
+ && apt-get -y install sbt=1.7.1
 
 #Chisel -> Primate
+#Git branch based flow          Commented out, as 3.4.2 does not have a branch
+#WORKDIR /primate/dep
+#RUN git clone https://github.com/chipsalliance/chisel.git
+#WORKDIR /primate/dep/chisel
+#RUN git pull \
+# && git checkout 3.4-release \
+# && sbt compile \
+# && sbt publishLocal
+#WORKDIR /primate
+
+#Chisel -> Primate
+#Tar based instal flow
 WORKDIR /primate/dep
-RUN git clone https://github.com/chipsalliance/chisel.git
-WORKDIR /primate/dep/chisel
-RUN git pull \
- && git checkout 3.4-release \
- && sbt compile \
+RUN curl -sL https://github.com/chipsalliance/chisel/archive/refs/tags/v3.4.2.zip -o v3.4.2.zip \
+ && unzip v3.4.2.zip \
+ && rm ./v3.4.2.zip
+WORKDIR /primate/dep/chisel-3.4.2
+RUN sbt compile \
  && sbt publishLocal
 WORKDIR /primate
 

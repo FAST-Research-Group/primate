@@ -9,7 +9,12 @@
 #Commands
 #	-prune		Clear old containers
 #	-clear		Clear all containers
+#	-build		Build the container
 #	-exec 		Run the container after building
+
+#Consider adding
+# docker cp foo.txt container_id:/foo.txt (Copy file to container)
+# docker cp container_id:/foo.txt foo.txt (Copy file to host)
 
 if [ -z "$(ls -A ./primate-arch-gen)" ]; then
 	echo "Populating submodules, this can take awhile as llvm is large and must be downloaded"
@@ -29,8 +34,10 @@ elif [[ "$@" == *"-clear"* ]]; then
 	docker image prune --all --filter "until=1h"	
 fi
 
-#Rebuild Docker container, based on changes to src files
-docker build -t primate-container -m 24g .
+if [[ "$@" == *"-build"* ]]; then
+	echo "Building docker container based on src files in this folder. Will use incremental build if possible"
+	docker build -t primate-container -m 24g .
+fi
 
 if [[ "$@" == *"-exec"* ]]; then
 	echo "Found -exec in arguments, launching bash in docker container"
