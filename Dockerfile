@@ -52,7 +52,8 @@ RUN apt update && apt-get update \
  && apt-get -y install git make clang curl g++ flex bison \ 
  && apt-get -y install git make autoconf g++ flex bison \
  && apt-get -y install build-essential libssl-dev \
- && apt-get -y install unzip
+ && apt-get -y install unzip \
+ && apt-get -y install emacs vim
  
 #sbt -> Chisel -> Primate
 RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list \
@@ -123,6 +124,16 @@ COPY ./primate-uarch ./primate-uarch
 #WORKDIR /primate/primate-uarch/apps/pktReassembly
 #RUN ./build.sh
 WORKDIR /primate
+
+#Pull compiler and build
+WORKDIR /primate
+RUN git clone -b primate https://github.com/FAST-Research-Group/primate-arch-gen/ primate-compiler
+WORKDIR /primate/primate-compiler
+RUN cmake -S llvm -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS='clang' -DLLVM_TARGETS_TO_BUILD='Primate;RISCV' -DLLVM_BUILD_TESTS=False -DCMAKE_INSTALL_PREFIX="/primate/primate-compiler/build" -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=Primate -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+RUN ninja -C ./build
+WORKDIR /primate
+
+
 
 #Copy Top level files
 COPY ./.gitmodules ./.gitmodules
