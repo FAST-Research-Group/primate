@@ -31,6 +31,8 @@ LABEL description="Container for fully setup copy of primate"
 #Create and set as the working directory
 WORKDIR /primate
 
+COPY . .
+
 ###############################################################################
 ####                          Primate Dependencies                         ####
 ###############################################################################
@@ -112,33 +114,21 @@ RUN apt-get -y install ninja-build
 ####                             Primate Setup                             ####
 ###############################################################################
 
+WORKDIR /primate
+RUN git status
+RUN git submodule init .
+RUN git submodule update --init --recursive
+
 #Build arch-gen
-COPY ./primate-arch-gen ./primate-arch-gen
 WORKDIR /primate/primate-arch-gen/build
 RUN cmake -G Ninja -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_PROJECTS=clang -DLLVM_PARALLEL_LINK_JOBS=1 -DLLVM_LINK_LLVM_DYLIB=true ../llvm/
 RUN ninja
-WORKDIR /primate
-
-#Build sample application Packet Reassembler
-COPY ./primate-uarch ./primate-uarch
-#WORKDIR /primate/primate-uarch/apps/pktReassembly
-#RUN ./build.sh
-WORKDIR /primate
 
 #Pull compiler and build
-WORKDIR /primate
-COPY ./primate-compiler ./primate-compiler
 WORKDIR /primate/primate-compiler
 RUN cmake -S llvm -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS='clang' -DLLVM_TARGETS_TO_BUILD='Primate;RISCV' -DLLVM_BUILD_TESTS=False -DCMAKE_INSTALL_PREFIX="/primate/primate-compiler/build" -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=Primate -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 RUN ninja -C ./build
 WORKDIR /primate
-
-
-
-#Copy Top level files
-COPY ./.gitmodules ./.gitmodules
-COPY ./README.md ./README.md
-COPY ./create_image.sh ./create_image.sh
 
 ###############################################################################
 ####                            Container Setup                            ####
