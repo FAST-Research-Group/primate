@@ -120,6 +120,15 @@ RUN git status
 RUN git submodule init .
 RUN git submodule update --init --recursive
 
+WORKDIR /primate/primate-compiler
+RUN git checkout tags/primate-v0.1
+
+WORKDIR /primate/primate-arch-gen
+RUN git checkout tags/v0.1
+
+WORKDIR /primate/primate-uarch
+RUN git checkout tags/v0.1
+
 #Build arch-gen
 WORKDIR /primate/primate-arch-gen/build
 RUN cmake -G Ninja -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_PROJECTS=clang -DLLVM_PARALLEL_LINK_JOBS=1 -DLLVM_LINK_LLVM_DYLIB=true ../llvm/
