@@ -2,6 +2,16 @@
 
 Throughput-Oriented Accelerator Generator
 
+## Docker
+
+We provide a Dockerfile that will set up a container with all the requirements for building primate. Simply build the container with `docker build --build-arg ssh_prv_key="$(cat ~/.ssh/id_rsa)" --build-arg ssh_pub_key="$(cat ~/.ssh/id_rsa.pub)" --squash . -t primate-instance`, and launch with `docker run -d primate-instance`. Get a terminal in the container with `docker exec -it primate-instance bash`.
+
+We also provide some arguments for the container: 
+- PRIMATE_VERSION: allows you to specify the release version of primate to build. Defaults to v0.1
+- PARALLEL_LINK_CMAKE: specify the number of parallel linking jobs when building archgen/compiler (LLVM). Defaults to 1 
+- ssh_prv_key: ssh key to allow for github use in the container
+- ssh_pub_key: same as last
+
 ## Prerequisites
 - Linux OS (tested on Ubuntu 20.04/22.04)
 - Chisel3
