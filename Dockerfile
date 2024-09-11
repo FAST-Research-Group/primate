@@ -66,24 +66,22 @@ RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/ap
  && apt-get update \
  && apt-get -y install sbt=1.7.1
 
-#Chisel -> Primate
-#Git branch based flow          Commented out, as 3.4.2 does not have a branch
-#WORKDIR /primate/dep
-#RUN git clone https://github.com/chipsalliance/chisel.git
-#WORKDIR /primate/dep/chisel
-#RUN git pull \
-# && git checkout 3.4-release \
-# && sbt compile \
-# && sbt publishLocal
-#WORKDIR /primate
+# Firtool and chisel need to match!
+# https://www.chisel-lang.org/docs/appendix/versioning
+WORKDIR /primate/deps
+RUN curl -L https://github.com/llvm/circt/releases/download/firtool-1.37.2/firrtl-bin-linux-x64.tar.gz -o ./firtool.tar.gz
+RUN tar -xzf firtool.tar.gz
+RUN mv firtool-1.37.2 firtool
+RUN rm firtool.tar.gz
+ENV PATH="${PATH}:/primate/deps/firtool/bin/"
 
 #Chisel -> Primate
 #Tar based instal flow
 WORKDIR /primate/dep
-RUN curl -sL https://github.com/chipsalliance/chisel/archive/refs/tags/v3.4.2.zip -o v3.4.2.zip \
- && unzip v3.4.2.zip \
- && rm ./v3.4.2.zip
-WORKDIR /primate/dep/chisel-3.4.2
+RUN curl -sL https://github.com/chipsalliance/chisel/archive/refs/tags/v3.6.0.zip -o v3.6.0.zip \
+ && unzip v3.6.0.zip \
+ && rm ./v3.6.0.zip
+WORKDIR /primate/dep/chisel-3.6.0
 RUN sbt compile \
  && sbt publishLocal
 WORKDIR /primate
