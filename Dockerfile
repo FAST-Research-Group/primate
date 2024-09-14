@@ -122,7 +122,8 @@ WORKDIR /primate/primate-compiler
 RUN git checkout primate
 
 WORKDIR /primate/primate-arch-gen
-RUN git checkout tags/v0.1
+# RUN git checkout tags/v0.1
+RUN git checkout kayvan-arch-gen
 
 WORKDIR /primate/primate-uarch
 # RUN git checkout tags/v0.1
