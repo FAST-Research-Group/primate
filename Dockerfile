@@ -121,12 +121,8 @@ RUN git submodule update --init --recursive
 WORKDIR /primate/primate-compiler
 RUN git checkout primate
 
-WORKDIR /primate/primate-arch-gen
-# RUN git checkout tags/v0.1
-RUN git checkout kayvan-arch-gen
-
 WORKDIR /primate/primate-uarch
-# RUN git checkout tags/v0.1
+RUN git checkout master 
 
 # Build arch-gen
 WORKDIR /primate/primate-arch-gen/build
@@ -135,7 +131,7 @@ RUN ninja
 
 #Pull compiler and build
 WORKDIR /primate/primate-compiler
-RUN cmake -S llvm -B build -G Ninja -DLLVM_CCACHE_BUILD=On -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS='clang' -DLLVM_TARGETS_TO_BUILD='Primate;RISCV' -DLLVM_BUILD_TESTS=False -DCMAKE_INSTALL_PREFIX="/primate/primate-compiler/build" -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=Primate -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+RUN cmake -S llvm -B build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DLLVM_CCACHE_BUILD=On -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS='clang' -DLLVM_TARGETS_TO_BUILD='Primate;RISCV' -DLLVM_BUILD_TESTS=False -DCMAKE_INSTALL_PREFIX="/primate/primate-compiler/build" -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=Primate -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 RUN ninja -C ./build
 WORKDIR /primate
 

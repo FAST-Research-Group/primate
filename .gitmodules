@@ -1,7 +1,3 @@
-[submodule "primate-arch-gen"]
-	path = primate-arch-gen
-	url = https://github.com/FAST-Research-Group/primate-arch-gen.git
-	branch = primate-dev
 [submodule "primate-uarch"]
 	path = primate-uarch
 	url = https://github.com/FAST-Research-Group/primate-uarch.git
